@@ -401,8 +401,12 @@ typedef int (*picoquic_stream_data_cb_fn)(picoquic_cnx_t* cnx,
  */
 typedef size_t (*picoquic_alpn_select_fn)(picoquic_quic_t* quic, ptls_iovec_t* list, size_t count);
 
-/* Function used during callback to provision an ALPN context. The stack 
- * issues a callback of type 
+/* Accessor functions for ptls_iovec_t to avoid exposing picotls headers */
+const uint8_t* picoquic_alpn_iovec_base(const ptls_iovec_t* list, size_t index);
+size_t picoquic_alpn_iovec_len(const ptls_iovec_t* list, size_t index);
+
+/* Function used during callback to provision an ALPN context. The stack
+ * issues a callback of type
  */
 int picoquic_add_proposed_alpn(void* tls_context, const char* alpn);
 
@@ -1120,6 +1124,8 @@ void * picoquic_get_default_callback_context(picoquic_quic_t * quic);
 picoquic_stream_data_cb_fn picoquic_get_callback_function(picoquic_cnx_t * cnx);
 
 void * picoquic_get_callback_context(picoquic_cnx_t* cnx);
+
+char const* picoquic_get_alpn(picoquic_cnx_t* cnx);
 
 /* Send extra frames */
 int picoquic_queue_misc_frame(picoquic_cnx_t* cnx, const uint8_t* bytes, size_t length,

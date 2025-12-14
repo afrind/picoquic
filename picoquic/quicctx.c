@@ -4591,6 +4591,11 @@ void * picoquic_get_callback_context(picoquic_cnx_t * cnx)
     return cnx->callback_ctx;
 }
 
+char const* picoquic_get_alpn(picoquic_cnx_t* cnx)
+{
+    return cnx->alpn;
+}
+
 picoquic_misc_frame_header_t* picoquic_create_misc_frame(const uint8_t* bytes, size_t length, int is_pure_ack,
     picoquic_packet_context_enum pc)
 {

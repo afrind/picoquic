@@ -2184,6 +2184,17 @@ int picoquic_add_proposed_alpn(void* tls_context, const char* alpn)
     return ret;
 }
 
+/* Accessor functions for ptls_iovec_t to avoid exposing picotls headers */
+const uint8_t* picoquic_alpn_iovec_base(const ptls_iovec_t* list, size_t index)
+{
+    return list != NULL ? list[index].base : NULL;
+}
+
+size_t picoquic_alpn_iovec_len(const ptls_iovec_t* list, size_t index)
+{
+    return list != NULL ? list[index].len : 0;
+}
+
 /* Prepare the initial message when starting a connection.
  */
 
