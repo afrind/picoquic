@@ -395,9 +395,10 @@ target_include_directories(picoquic-core
         ${OPENSSL_INCLUDE_DIR}
     PUBLIC
         ${MBEDTLS_INCLUDE_DIRS}
-        picoquic
-        c4/src
-        picoquic_mbedtls)
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/picoquic>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/c4/src>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/picoquic_mbedtls>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_link_libraries(picoquic-core
     PRIVATE
         ${LIBURING}
@@ -618,7 +619,11 @@ install(TARGETS picoquic-core
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 if(PICOQUIC_FETCH_PTLS)
-    set(LIB_PATH "${CMAKE_INSTALL_LIBDIR}/libpicoquic-core.a;${CMAKE_INSTALL_LIBDIR}/libpicotls-core.a;${CMAKE_INSTALL_LIBDIR}/libpicotls-fusion.a;${CMAKE_INSTALL_LIBDIR}/libpicotls-openssl.a;${CMAKE_INSTALL_LIBDIR}/libpicotls-minicrypto.a" CACHE PATH "Path of library files")
+    set(LIB_PATH "${CMAKE_INSTALL_LIBDIR}/libpicoquic-core.a")
+    foreach(_ptls_lib ${PTLS_LIBRARIES})
+        string(APPEND LIB_PATH ";${CMAKE_INSTALL_LIBDIR}/lib${_ptls_lib}.a")
+    endforeach()
+    set(LIB_PATH "${LIB_PATH}" CACHE PATH "Path of library files")
 
     install(TARGETS ${PTLS_LIBRARIES}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
@@ -654,3 +659,11 @@ configure_package_config_file(${PROJECT_NAME}-config.cmake.in ${CMAKE_CURRENT_BI
 write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake VERSION ${PROJECT_VERSION} COMPATIBILITY ExactVersion)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake DESTINATION ${INSTALL_CONFIG_DIR})
+
+# When used via add_subdirectory/FetchContent, export the same variables
+# that picoquic-config.cmake would provide after install.
+if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(picoquic_FOUND TRUE PARENT_SCOPE)
+    set(picoquic_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/picoquic" PARENT_SCOPE)
+    set(picoquic_LIBRARIES picoquic-core ${PTLS_LIBRARIES} PARENT_SCOPE)
+endif()
