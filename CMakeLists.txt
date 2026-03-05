@@ -278,8 +278,8 @@ OPTION(PICOQUIC_FETCH_PTLS "Fetch PicoTLS during configuration" OFF)
 if(PICOQUIC_FETCH_PTLS)
     include(FetchContent)
     FetchContent_Declare(picotls
-        GIT_REPOSITORY      https://github.com/h2o/picotls.git
-        GIT_TAG             aef22626bbe696581dcd46af1d63be1c8e803751)
+        GIT_REPOSITORY      https://github.com/afrind/picotls.git
+        GIT_TAG             39606968c62b0dfaea009b33c4a28ed2ce811402)
     FetchContent_MakeAvailable(picotls)
 endif()
 
