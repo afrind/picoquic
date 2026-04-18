@@ -131,6 +131,12 @@ static h3zero_stream_ctx_t* picowt_create_stream_ctx(picoquic_cnx_t* cnx, int is
     return stream_ctx;
 }
 
+size_t picowt_get_stream_preface_length(uint64_t control_stream_id)
+{
+    /* Both bidi (0x41) and unidir (0x54) WT stream type varints encode as 2 bytes. */
+    return 2 + picoquic_frames_varint_encode_length(control_stream_id);
+}
+
 h3zero_stream_ctx_t* picowt_create_local_stream(picoquic_cnx_t* cnx, int is_bidir, h3zero_callback_ctx_t* h3_ctx,
     uint64_t control_stream_id)
 {

@@ -30,6 +30,7 @@
 #include "picoquic_logger.h"
 #include "picoquic_bbr.h"
 #include "qlog.h"
+#include "h3zero_common.h"
 
 /* Flow control test:
 * 
@@ -590,6 +591,102 @@ int fc_callback_test(void)
 		ret = -1;
 	}
 
+	if (test_ctx != NULL) {
+		tls_api_delete_ctx(test_ctx);
+	}
+	return ret;
+}
+
+/* h3zero FC path callback test:
+ * Verifies that picoquic_callback_stream_fc_updated is routed by h3zero_callback
+ * to the registered path callback as picohttp_callback_stream_fc_updated.
+ */
+
+typedef struct st_h3fc_path_ctx_t {
+	int fc_cb_count;
+	size_t last_length;
+	picohttp_call_back_event_t last_event;
+} h3fc_path_ctx_t;
+
+static int h3fc_path_callback(picoquic_cnx_t* cnx, uint8_t* bytes, size_t length,
+	picohttp_call_back_event_t event, h3zero_stream_ctx_t* stream_ctx,
+	void* path_app_ctx)
+{
+	h3fc_path_ctx_t* ctx = (h3fc_path_ctx_t*)path_app_ctx;
+	(void)cnx;
+	(void)bytes;
+	(void)stream_ctx;
+
+	if (ctx != NULL) {
+		ctx->fc_cb_count++;
+		ctx->last_length = length;
+		ctx->last_event = event;
+	}
+	return 0;
+}
+
+int h3fc_path_callback_test(void)
+{
+	int ret = 0;
+	picoquic_test_tls_api_ctx_t* test_ctx = NULL;
+	uint64_t simulated_time = 0;
+	picoquic_connection_id_t initial_cid = { {0xfc, 0xf3, 0x00, 0, 0, 0, 0, 0x01}, 8 };
+	h3zero_callback_ctx_t* h3ctx = NULL;
+	h3zero_stream_ctx_t* stream_ctx = NULL;
+	h3fc_path_ctx_t path_ctx;
+	uint64_t test_stream_id = 4; /* client-initiated bidi stream */
+	size_t test_maxdata = 65536;
+
+	memset(&path_ctx, 0, sizeof(path_ctx));
+
+	ret = tls_api_init_ctx_ex2(&test_ctx,
+		PICOQUIC_INTERNAL_TEST_VERSION_1,
+		PICOQUIC_TEST_SNI, FCTEST_TEST_ALPN, &simulated_time,
+		NULL, NULL, 0, 1, 0, &initial_cid, 8, 0, 0, 0);
+
+	if (ret == 0) {
+		h3ctx = h3zero_callback_create_context(NULL);
+		if (h3ctx == NULL) {
+			ret = -1;
+		}
+	}
+
+	if (ret == 0) {
+		stream_ctx = h3zero_find_or_create_stream(
+			test_ctx->cnx_client, test_stream_id, h3ctx, 1, 1);
+		if (stream_ctx == NULL) {
+			ret = -1;
+		}
+	}
+
+	if (ret == 0) {
+		stream_ctx->path_callback = h3fc_path_callback;
+		stream_ctx->path_callback_ctx = &path_ctx;
+
+		ret = h3zero_callback(test_ctx->cnx_client, test_stream_id,
+			NULL, test_maxdata, picoquic_callback_stream_fc_updated,
+			h3ctx, NULL);
+	}
+
+	if (ret == 0 && path_ctx.fc_cb_count != 1) {
+		DBG_PRINTF("h3fc_path_callback_test: fc_cb_count=%d expected 1",
+			path_ctx.fc_cb_count);
+		ret = -1;
+	}
+	if (ret == 0 && path_ctx.last_event != picohttp_callback_stream_fc_updated) {
+		DBG_PRINTF("h3fc_path_callback_test: event=%d expected %d",
+			(int)path_ctx.last_event, (int)picohttp_callback_stream_fc_updated);
+		ret = -1;
+	}
+	if (ret == 0 && path_ctx.last_length != test_maxdata) {
+		DBG_PRINTF("h3fc_path_callback_test: length=%zu expected %zu",
+			path_ctx.last_length, test_maxdata);
+		ret = -1;
+	}
+
+	if (h3ctx != NULL) {
+		h3zero_callback_delete_context(test_ctx ? test_ctx->cnx_client : NULL, h3ctx);
+	}
 	if (test_ctx != NULL) {
 		tls_api_delete_ctx(test_ctx);
 	}

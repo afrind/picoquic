@@ -1912,6 +1912,15 @@ int h3zero_callback(picoquic_cnx_t* cnx,
 				}
 			}
 			break;
+		case picoquic_callback_stream_fc_updated:
+			if (stream_ctx == NULL) {
+				stream_ctx = h3zero_find_stream(ctx, stream_id);
+			}
+			if (stream_ctx != NULL && stream_ctx->path_callback != NULL) {
+				ret = stream_ctx->path_callback(cnx, NULL, length,
+					picohttp_callback_stream_fc_updated, stream_ctx, stream_ctx->path_callback_ctx);
+			}
+			break;
 		case picoquic_callback_stateless_reset:
 		case picoquic_callback_close: /* Received connection close */
 		case picoquic_callback_application_close: /* Received application close */

@@ -89,7 +89,14 @@ extern "C" {
     void picowt_deregister(picoquic_cnx_t* cnx, h3zero_callback_ctx_t* h3_ctx, h3zero_stream_ctx_t* control_stream_ctx);
 
     /**
-    * Create local stream: when a stream is created locally. 
+    * Returns the number of bytes prepended to every locally-created WT stream
+    * before application data (stream type varint + session control_stream_id varint).
+    * Use to adjust QUIC stream FC limits to app-layer byte counts.
+    */
+    size_t picowt_get_stream_preface_length(uint64_t control_stream_id);
+
+    /**
+    * Create local stream: when a stream is created locally.
     * Send the stream header. Associate the stream with a per_stream
     * app context.
     */

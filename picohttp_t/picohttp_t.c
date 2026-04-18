@@ -110,6 +110,7 @@ static const picoquic_test_def_t test_table[] = {
     { "picowt_baton_wildcard", picowt_baton_wildcard_test },
     { "picowt_drain", picowt_drain_test },
     { "picowt_tp", picowt_tp_test },
+    { "picowt_stream_preface_length", picowt_stream_preface_length_test },
     { "quicperf_parse", quicperf_parse_test },
     { "quicperf_batch", quicperf_batch_test },
     { "quicperf_datagram", quicperf_datagram_test },

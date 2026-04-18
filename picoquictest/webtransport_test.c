@@ -460,3 +460,31 @@ int picowt_drain_test(void)
 
     return ret;
 }
+
+int picowt_stream_preface_length_test(void)
+{
+    int ret = 0;
+    /* stream type (0x41 or 0x54) always encodes as 2 bytes; session ID varies */
+    struct {
+        uint64_t control_stream_id;
+        size_t expected;
+    } cases[] = {
+        { 0,      3 }, /* 2 + varint_len(0)=1 */
+        { 4,      3 }, /* 2 + varint_len(4)=1 */
+        { 63,     3 }, /* 2 + varint_len(63)=1 */
+        { 64,     4 }, /* 2 + varint_len(64)=2 */
+        { 0x3fff, 4 }, /* 2 + varint_len(16383)=2 */
+        { 0x4000, 6 }, /* 2 + varint_len(16384)=4 */
+    };
+    size_t n = sizeof(cases) / sizeof(cases[0]);
+
+    for (size_t i = 0; i < n; i++) {
+        size_t got = picowt_get_stream_preface_length(cases[i].control_stream_id);
+        if (got != cases[i].expected) {
+            DBG_PRINTF("picowt_stream_preface_length_test: id=%" PRIu64 " got=%zu expected=%zu",
+                cases[i].control_stream_id, got, cases[i].expected);
+            ret = -1;
+        }
+    }
+    return ret;
+}
