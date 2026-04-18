@@ -5540,6 +5540,24 @@ uint64_t picoquic_get_data_received(picoquic_cnx_t* cnx)
     return cnx->data_received;
 }
 
+uint64_t picoquic_get_remote_max_data(picoquic_cnx_t* cnx)
+{
+    PICOQUIC_THREAD_CHECK(cnx->quic);
+    return cnx->remote_parameters.initial_max_data;
+}
+
+uint64_t picoquic_get_remote_max_stream_data_uni(picoquic_cnx_t* cnx)
+{
+    PICOQUIC_THREAD_CHECK(cnx->quic);
+    return cnx->remote_parameters.initial_max_stream_data_uni;
+}
+
+uint64_t picoquic_get_remote_max_stream_data_bidi_remote(picoquic_cnx_t* cnx)
+{
+    PICOQUIC_THREAD_CHECK(cnx->quic);
+    return cnx->remote_parameters.initial_max_stream_data_bidi_remote;
+}
+
 void picoquic_set_client_authentication(picoquic_quic_t* quic, int client_authentication) {
     PICOQUIC_THREAD_CHECK(quic);
     picoquic_tls_set_client_authentication(quic, client_authentication);

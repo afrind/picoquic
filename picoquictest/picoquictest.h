@@ -392,6 +392,7 @@ int queue_network_input_test(void);
 int fastcc_test(void);
 int fastcc_jitter_test(void);
 int flow_control_test(void);
+int fc_callback_test(void);
 int bbr_test(void);
 int bbr_jitter_test(void);
 int bbr_long_test(void);

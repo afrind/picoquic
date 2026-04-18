@@ -351,7 +351,9 @@ typedef enum {
     picoquic_callback_path_quality_changed, /* Some path quality parameters have changed */
     picoquic_callback_path_address_observed, /* The peer has reported an address for the path */
     picoquic_callback_app_wakeup, /* wakeup timer set by application has expired */
-    picoquic_callback_next_path_allowed /* There are enough path_id and connection ID available for the next path */
+    picoquic_callback_next_path_allowed, /* There are enough path_id and connection ID available for the next path */
+    picoquic_callback_stream_fc_updated, /* MAX_STREAM_DATA received; stream_id=stream, length=new absolute max */
+    picoquic_callback_conn_fc_updated    /* MAX_DATA received; stream_id=0, length=new absolute max */
 } picoquic_call_back_event_t;
 
 typedef struct st_picoquic_tp_preferred_address_t {
@@ -1664,6 +1666,12 @@ uint64_t picoquic_get_remote_stream_error(picoquic_cnx_t* cnx, uint64_t stream_i
 uint64_t picoquic_get_data_sent(picoquic_cnx_t * cnx);
 
 uint64_t picoquic_get_data_received(picoquic_cnx_t * cnx);
+
+/* Remote flow-control limit query APIs.
+ * Valid after picoquic_callback_ready (transport params exchanged during handshake). */
+uint64_t picoquic_get_remote_max_data(picoquic_cnx_t* cnx);
+uint64_t picoquic_get_remote_max_stream_data_uni(picoquic_cnx_t* cnx);
+uint64_t picoquic_get_remote_max_stream_data_bidi_remote(picoquic_cnx_t* cnx);
 
 int picoquic_cnx_is_still_logging(picoquic_cnx_t* cnx);
 

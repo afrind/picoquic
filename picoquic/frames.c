@@ -4502,6 +4502,10 @@ const uint8_t* picoquic_decode_max_data_frame(picoquic_cnx_t* cnx, const uint8_t
     } else if (maxdata > cnx->maxdata_remote) {
         cnx->maxdata_remote = maxdata;
         cnx->sent_blocked_frame = 0;
+        if (cnx->callback_fn != NULL) {
+            (void)cnx->callback_fn(cnx, 0, NULL, (size_t)maxdata,
+                picoquic_callback_conn_fc_updated, cnx->callback_ctx, NULL);
+        }
     }
 
     return bytes;
@@ -4575,10 +4579,13 @@ const uint8_t* picoquic_decode_max_stream_data_frame(picoquic_cnx_t* cnx, const 
     }
     
     if (stream != NULL && maxdata > stream->maxdata_remote) {
-        /* TODO: call back if the stream was blocked? */
         stream->maxdata_remote = maxdata;
         if (maxdata > cnx->max_stream_data_remote) {
             cnx->max_stream_data_remote = maxdata;
+        }
+        if (cnx->callback_fn != NULL) {
+            (void)cnx->callback_fn(cnx, stream_id, NULL, (size_t)maxdata,
+                picoquic_callback_stream_fc_updated, cnx->callback_ctx, NULL);
         }
     }
 
